@@ -7,3 +7,50 @@ datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
+
+model Usuario {
+  id           Int        @id @default(autoincrement())
+  nombre       String
+  email        String     @unique
+  jardin       Jardin?
+  tareas       Tarea[]
+  inventario   Inventario[]
+}
+
+model Jardin {
+  id           Int        @id @default(autoincrement())
+  tipo         String
+  nivel        Int
+  usuarioId    Int        @unique
+  usuario      Usuario    @relation(fields: [usuarioId], references: [id])
+}
+
+model Tarea {
+  id           Int        @id @default(autoincrement())
+  tipo         String
+  descripcion  String
+  fecha        DateTime
+  cumplida     Boolean    @default(false)
+  usuarioId    Int
+  usuario      Usuario    @relation(fields: [usuarioId], references: [id])
+}
+
+model Poder {
+  id           Int        @id @default(autoincrement())
+  nombre       String
+  descripcion  String
+  icono        String     // puede ser una imagen o emoji o lo que uses
+  inventarios  Inventario[]
+}
+
+model Inventario {
+  id           Int        @id @default(autoincrement())
+  usuarioId    Int
+  poderId      Int
+  cantidad     Int        @default(1)
+
+  usuario      Usuario    @relation(fields: [usuarioId], references: [id])
+  poder        Poder      @relation(fields: [poderId], references: [id])
+
+  @@unique([usuarioId, poderId]) // cada usuario puede tener una cantidad de cada poder
+}
