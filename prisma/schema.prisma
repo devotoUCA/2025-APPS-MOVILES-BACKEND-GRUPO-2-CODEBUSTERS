@@ -1,24 +1,62 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 // prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./dev.db"
+  url      = env("DATABASE_URL")
 }
 
-model Product {
-  id          String  @id @default(uuid())
-  title       String
-  price       String
-  image       String
-  description String
+model PLAYER {
+  player_id            Int        @id @default(autoincrement())
+  player_name          String
+  current_garden_id    Int? 
+  current_garden_level Int?
+
+  current_garden GARDENS? @relation(fields: [current_garden_id], references: [garden_id])
+
+  INVENTORYs INVENTORY[]
+  TASKs      TASKS[]
 }
 
+model GARDENS {
+  garden_id   Int     @id @default(autoincrement())
+  garden_name String  @unique
+  level_1_img String?
+  level_2_img String?
+  level_3_img String?
+  level_4_img String?
+  level_5_img String?
+
+  PLAYERs PLAYER[]
+}
+
+model CONSUMABLES {
+  consumable_id   Int       @id @default(autoincrement())
+  consumable_name String    @unique
+  consumable_img  String?
+
+  INVENTORYs INVENTORY[]
+}
+
+model INVENTORY {
+  player_id     Int
+  consumable_id Int
+  quantity      Int @default(0)
+
+  PLAYER      PLAYER      @relation(fields: [player_id], references: [player_id])
+  CONSUMABLES CONSUMABLES @relation(fields: [consumable_id], references: [consumable_id])
+
+  @@id([player_id, consumable_id])
+}
+
+model TASKS {
+  task_id         Int     @id @default(autoincrement())
+  player_id       Int
+  completed_flag  Boolean @default(false)
+  eliminated_flag Boolean @default(false)
+
+  PLAYER PLAYER @relation(fields: [player_id], references: [player_id])
+}
