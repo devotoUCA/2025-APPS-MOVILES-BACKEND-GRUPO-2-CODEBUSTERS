@@ -1,14 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Product` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropTable
-PRAGMA foreign_keys=off;
-DROP TABLE "Product";
-PRAGMA foreign_keys=on;
-
 -- CreateTable
 CREATE TABLE "PLAYER" (
     "player_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -22,18 +11,18 @@ CREATE TABLE "PLAYER" (
 CREATE TABLE "GARDENS" (
     "garden_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "garden_name" TEXT NOT NULL,
-    "level_1_img" TEXT NOT NULL,
-    "level_2_img" TEXT NOT NULL,
-    "level_3_img" TEXT NOT NULL,
-    "level_4_img" TEXT NOT NULL,
-    "level_5_img" TEXT NOT NULL
+    "level_1_img" TEXT,
+    "level_2_img" TEXT,
+    "level_3_img" TEXT,
+    "level_4_img" TEXT,
+    "level_5_img" TEXT
 );
 
 -- CreateTable
 CREATE TABLE "CONSUMABLES" (
     "consumable_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "consumable_name" TEXT NOT NULL,
-    "consumable_img" TEXT NOT NULL
+    "consumable_img" TEXT
 );
 
 -- CreateTable
@@ -55,3 +44,9 @@ CREATE TABLE "TASKS" (
     "eliminated_flag" BOOLEAN NOT NULL DEFAULT false,
     CONSTRAINT "TASKS_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "PLAYER" ("player_id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "GARDENS_garden_name_key" ON "GARDENS"("garden_name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CONSUMABLES_consumable_name_key" ON "CONSUMABLES"("consumable_name");
