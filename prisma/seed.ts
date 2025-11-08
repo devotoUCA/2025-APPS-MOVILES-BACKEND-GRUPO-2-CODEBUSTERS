@@ -3,10 +3,12 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Crear un jugador de prueba
+  // Crear un jugador de prueba CON email y password
   const player = await prisma.pLAYER.create({
     data: {
       player_name: 'Jugador Test',
+      email: 'test@example.com',
+      password: '123456',
       current_garden_id: null,
       current_garden_level: null
     }
@@ -14,7 +16,7 @@ async function main() {
 
   console.log('Jugador creado:', player);
 
-  // Crear 2 tareas de prueba con título y tipo
+  // Crear 2 tareas de prueba
   const task1 = await prisma.tASKS.create({
     data: {
       player_id: player.player_id,

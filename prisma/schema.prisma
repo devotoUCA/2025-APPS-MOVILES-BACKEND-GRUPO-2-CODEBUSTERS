@@ -10,11 +10,11 @@ datasource db {
 model PLAYER {
   player_id            Int        @id @default(autoincrement())
   player_name          String
+  email                String     @unique
+  password             String
   current_garden_id    Int? 
   current_garden_level Int?
-
   current_garden GARDENS? @relation(fields: [current_garden_id], references: [garden_id])
-
   INVENTORYs INVENTORY[]
   TASKs      TASKS[]
 }

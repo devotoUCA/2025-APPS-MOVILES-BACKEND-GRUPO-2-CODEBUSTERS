@@ -2,6 +2,8 @@
 CREATE TABLE "PLAYER" (
     "player_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "player_name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "current_garden_id" INTEGER,
     "current_garden_level" INTEGER,
     CONSTRAINT "PLAYER_current_garden_id_fkey" FOREIGN KEY ("current_garden_id") REFERENCES "GARDENS" ("garden_id") ON DELETE SET NULL ON UPDATE CASCADE
@@ -40,10 +42,15 @@ CREATE TABLE "INVENTORY" (
 CREATE TABLE "TASKS" (
     "task_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "player_id" INTEGER NOT NULL,
+    "titulo" TEXT NOT NULL DEFAULT '',
+    "tipo" TEXT NOT NULL DEFAULT 'Productividad',
     "completed_flag" BOOLEAN NOT NULL DEFAULT false,
     "eliminated_flag" BOOLEAN NOT NULL DEFAULT false,
     CONSTRAINT "TASKS_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "PLAYER" ("player_id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PLAYER_email_key" ON "PLAYER"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "GARDENS_garden_name_key" ON "GARDENS"("garden_name");
