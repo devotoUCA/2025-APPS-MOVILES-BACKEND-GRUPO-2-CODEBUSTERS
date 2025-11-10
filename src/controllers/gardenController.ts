@@ -1,4 +1,4 @@
-// src/controllers/gardenController.ts (CÓDIGO COMPLETO Y CORREGIDO)
+// src/controllers/gardenController.ts (CÓDIGO CORREGIDO - PERSISTENCIA DE INVENTARIO)
 
 import { Request, Response } from 'express';
 import { prisma } from '../prisma';
@@ -45,8 +45,8 @@ export const updateGardenProgress = async (req: Request, res: Response) => {
   }
 };
 
-// 2. ✅ ¡AQUÍ ESTÁ LA LÓGICA QUE FALTABA!
-//    Esta función maneja las recompensas de consumibles
+// 2. ✅ ¡FUNCIÓN CORREGIDA PARA PERSISTENCIA!
+//    Ahora retorna el player completo actualizado
 export const updateInventory = async (req: Request, res: Response) => {
   const playerId = parseInt(req.params.id);
   const { consumableId, quantity } = req.body;
@@ -72,7 +72,7 @@ export const updateInventory = async (req: Request, res: Response) => {
       newQuantity = quantity;
     }
 
-    const updatedInventory = await prisma.iNVENTORY.upsert({
+    await prisma.iNVENTORY.upsert({
       where: {
         player_id_consumable_id: {
           player_id: playerId,
@@ -91,7 +91,18 @@ export const updateInventory = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ success: true, inventory: updatedInventory });
+    // ✅ CAMBIO CRÍTICO: Retornamos el player completo actualizado
+    // Esto permitirá actualizar Redux y AsyncStorage
+    const updatedPlayer = await prisma.pLAYER.findUnique({
+      where: { player_id: playerId },
+      include: {
+        INVENTORYs: { include: { CONSUMABLES: true } },
+        current_garden: true,
+        GardenProgress: true
+      }
+    });
+
+    res.json({ success: true, player: updatedPlayer });
   } catch (error) {
     console.error("Error en updateInventory:", error); 
     res.status(500).json({ error: 'Error al actualizar inventario' });
