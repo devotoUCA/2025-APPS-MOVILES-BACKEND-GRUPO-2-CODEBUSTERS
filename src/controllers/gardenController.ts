@@ -1,19 +1,18 @@
-// src/controllers/gardenController.ts (CÓDIGO CORREGIDO - PERSISTENCIA DE INVENTARIO)
+// src/controllers/gardenController.ts (CON RESET AL CAMBIAR JARDÍN)
 
 import { Request, Response } from 'express';
 import { prisma } from '../prisma';
 
-// 1. ESTA FUNCIÓN AHORA GUARDA EN 'GardenProgress'
+// Actualiza el nivel Y el progreso de un jardín
 export const updateGardenProgress = async (req: Request, res: Response) => {
   const playerId = parseInt(req.params.id);
-  const { level, gardenId } = req.body; 
+  const { level, gardenId, progress } = req.body;
 
   if (isNaN(playerId) || level === undefined || gardenId === undefined) {
     return res.status(400).json({ error: 'Falta playerId, level o gardenId' });
   }
 
   try {
-    // Actualiza o crea el progreso para ESE jardín
     await prisma.gardenProgress.upsert({
       where: { 
         player_id_garden_id: {
@@ -21,15 +20,18 @@ export const updateGardenProgress = async (req: Request, res: Response) => {
           garden_id: gardenId
         }
       },
-      update: { level: level },
+      update: { 
+        level: level,
+        progress: progress !== undefined ? progress : 0
+      },
       create: {
         player_id: playerId,
         garden_id: gardenId,
-        level: level
+        level: level,
+        progress: progress !== undefined ? progress : 0
       }
     });
 
-    // Devuelve el jugador actualizado con TODO el progreso
     const updatedPlayer = await prisma.pLAYER.findUnique({
       where: { player_id: playerId },
       include: {
@@ -45,8 +47,48 @@ export const updateGardenProgress = async (req: Request, res: Response) => {
   }
 };
 
-// 2. ✅ ¡FUNCIÓN CORREGIDA PARA PERSISTENCIA!
-//    Ahora retorna el player completo actualizado
+// Función para guardar SOLO el progreso intermedio (sin cambiar nivel)
+export const updateGardenProgressOnly = async (req: Request, res: Response) => {
+  const playerId = parseInt(req.params.id);
+  const { gardenId, progress } = req.body;
+
+  if (isNaN(playerId) || gardenId === undefined || progress === undefined) {
+    return res.status(400).json({ error: 'Falta playerId, gardenId o progress' });
+  }
+
+  try {
+    await prisma.gardenProgress.upsert({
+      where: { 
+        player_id_garden_id: {
+          player_id: playerId,
+          garden_id: gardenId
+        }
+      },
+      update: { progress: progress },
+      create: {
+        player_id: playerId,
+        garden_id: gardenId,
+        level: 1,
+        progress: progress
+      }
+    });
+
+    const updatedPlayer = await prisma.pLAYER.findUnique({
+      where: { player_id: playerId },
+      include: {
+        INVENTORYs: { include: { CONSUMABLES: true } },
+        current_garden: true,
+        GardenProgress: true
+      }
+    });
+
+    res.json({ success: true, player: updatedPlayer });
+  } catch (error) {
+    console.error("Error en updateGardenProgressOnly:", error);
+    res.status(500).json({ error: 'Error al actualizar el progreso' });
+  }
+};
+
 export const updateInventory = async (req: Request, res: Response) => {
   const playerId = parseInt(req.params.id);
   const { consumableId, quantity } = req.body;
@@ -91,8 +133,6 @@ export const updateInventory = async (req: Request, res: Response) => {
       },
     });
 
-    // ✅ CAMBIO CRÍTICO: Retornamos el player completo actualizado
-    // Esto permitirá actualizar Redux y AsyncStorage
     const updatedPlayer = await prisma.pLAYER.findUnique({
       where: { player_id: playerId },
       include: {
@@ -109,8 +149,7 @@ export const updateInventory = async (req: Request, res: Response) => {
   }
 };
 
-
-// 3. 'updateGardenType' (Esta función estaba bien)
+// ✅ MODIFICADO: Ahora RESETEA al nivel 1 y progreso 0 cuando cambias de jardín
 export const updateGardenType = async (req: Request, res: Response) => {
   const playerId = parseInt(req.params.id);
   const { gardenName } = req.body; 
@@ -127,6 +166,7 @@ export const updateGardenType = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Jardín no encontrado' });
     }
 
+    // ✅ CAMBIO CRÍTICO: Siempre resetea a nivel 1 y progreso 0 al cambiar de jardín
     await prisma.gardenProgress.upsert({
       where: { 
         player_id_garden_id: {
@@ -134,11 +174,15 @@ export const updateGardenType = async (req: Request, res: Response) => {
           garden_id: garden.garden_id
         }
       },
-      update: {}, // No hagas nada si ya existe (mantiene el nivel)
+      update: { 
+        level: 1,      // ← Resetea a nivel 1
+        progress: 0    // ← Resetea progreso a 0
+      },
       create: {
         player_id: playerId,
         garden_id: garden.garden_id,
-        level: 1 // Nivel 1 por defecto
+        level: 1,
+        progress: 0
       }
     });
 

@@ -1,4 +1,4 @@
-// prisma/schema.prisma (CÓDIGO COMPLETO)
+// prisma/schema.prisma (CON PROGRESO INTERMEDIO)
 
 generator client {
   provider = "prisma-client-js"
@@ -19,7 +19,7 @@ model PLAYER {
   current_garden GARDENS? @relation(fields: [current_garden_id], references: [garden_id])
   INVENTORYs     INVENTORY[]
   TASKs          TASKS[]
-  GardenProgress GardenProgress[] // ✅ Relación a la nueva tabla
+  GardenProgress GardenProgress[]
 }
 
 model GARDENS {
@@ -32,14 +32,15 @@ model GARDENS {
   level_5_img String?
 
   PLAYERs        PLAYER[]
-  GardenProgress GardenProgress[] // ✅ Relación a la nueva tabla
+  GardenProgress GardenProgress[]
 }
 
-// ✅ TABLA COMPLETAMENTE NUEVA
+// ✅ CAMPO NUEVO: progress para guardar progreso intermedio (0, 1, 2)
 model GardenProgress {
   player_id Int
   garden_id Int
   level     Int @default(1)
+  progress  Int @default(0) // ✅ NUEVO: Progreso intermedio del nivel actual
 
   PLAYER  PLAYER  @relation(fields: [player_id], references: [player_id])
   GARDENS GARDENS @relation(fields: [garden_id], references: [garden_id])
