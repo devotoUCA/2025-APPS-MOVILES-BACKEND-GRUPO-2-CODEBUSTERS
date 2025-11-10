@@ -1,3 +1,5 @@
+// prisma/schema.prisma (CÓDIGO COMPLETO)
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,15 +10,16 @@ datasource db {
 }
 
 model PLAYER {
-  player_id            Int        @id @default(autoincrement())
-  player_name          String
-  email                String     @unique
-  password             String
-  current_garden_id    Int? 
-  current_garden_level Int?
+  player_id         Int        @id @default(autoincrement())
+  player_name       String
+  email             String     @unique
+  password          String
+  current_garden_id Int? 
+  
   current_garden GARDENS? @relation(fields: [current_garden_id], references: [garden_id])
-  INVENTORYs INVENTORY[]
-  TASKs      TASKS[]
+  INVENTORYs     INVENTORY[]
+  TASKs          TASKS[]
+  GardenProgress GardenProgress[] // ✅ Relación a la nueva tabla
 }
 
 model GARDENS {
@@ -28,15 +31,28 @@ model GARDENS {
   level_4_img String?
   level_5_img String?
 
-  PLAYERs PLAYER[]
+  PLAYERs        PLAYER[]
+  GardenProgress GardenProgress[] // ✅ Relación a la nueva tabla
 }
+
+// ✅ TABLA COMPLETAMENTE NUEVA
+model GardenProgress {
+  player_id Int
+  garden_id Int
+  level     Int @default(1)
+
+  PLAYER  PLAYER  @relation(fields: [player_id], references: [player_id])
+  GARDENS GARDENS @relation(fields: [garden_id], references: [garden_id])
+
+  @@id([player_id, garden_id])
+}
+
 
 model CONSUMABLES {
   consumable_id   Int       @id @default(autoincrement())
   consumable_name String    @unique
   consumable_img  String?
-
-  INVENTORYs INVENTORY[]
+  INVENTORYs      INVENTORY[]
 }
 
 model INVENTORY {
@@ -57,5 +73,5 @@ model TASKS {
   tipo            String  @default("Productividad")
   completed_flag  Boolean @default(false)
   eliminated_flag Boolean @default(false)
-  PLAYER PLAYER @relation(fields: [player_id], references: [player_id])
+  PLAYER          PLAYER  @relation(fields: [player_id], references: [player_id])
 }

@@ -5,7 +5,6 @@ CREATE TABLE "PLAYER" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "current_garden_id" INTEGER,
-    "current_garden_level" INTEGER,
     CONSTRAINT "PLAYER_current_garden_id_fkey" FOREIGN KEY ("current_garden_id") REFERENCES "GARDENS" ("garden_id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -18,6 +17,17 @@ CREATE TABLE "GARDENS" (
     "level_3_img" TEXT,
     "level_4_img" TEXT,
     "level_5_img" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "GardenProgress" (
+    "player_id" INTEGER NOT NULL,
+    "garden_id" INTEGER NOT NULL,
+    "level" INTEGER NOT NULL DEFAULT 1,
+
+    PRIMARY KEY ("player_id", "garden_id"),
+    CONSTRAINT "GardenProgress_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "PLAYER" ("player_id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "GardenProgress_garden_id_fkey" FOREIGN KEY ("garden_id") REFERENCES "GARDENS" ("garden_id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable

@@ -1,43 +1,80 @@
+// prisma/seed.ts (CÓDIGO COMPLETO Y CORREGIDO)
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Crear un jugador de prueba CON email y password
-  const player = await prisma.pLAYER.create({
-    data: {
+  
+  // 1. CREA LOS JARDINES
+  const garden1 = await prisma.gARDENS.upsert({
+    where: { garden_name: 'jungle' }, update: {}, create: { garden_name: 'jungle' }, 
+  });
+  const garden2 = await prisma.gARDENS.upsert({
+    where: { garden_name: 'peach' }, update: {}, create: { garden_name: 'peach' }, 
+  });
+  const garden3 = await prisma.gARDENS.upsert({
+    where: { garden_name: 'valley' }, update: {}, create: { garden_name: 'valley' }, 
+  });
+  console.log('Jardines creados o verificados.');
+
+  // 2. CREA LOS CONSUMIBLES (La parte que fallaba)
+  await prisma.cONSUMABLES.upsert({ where: { consumable_name: 'agua' }, update: {}, create: { consumable_name: 'agua' } });
+  await prisma.cONSUMABLES.upsert({ where: { consumable_name: 'polvo' }, update: {}, create: { consumable_name: 'polvo' } });
+  await prisma.cONSUMABLES.upsert({ where: { consumable_name: 'fertilizante' }, update: {}, create: { consumable_name: 'fertilizante' } });
+  console.log('Consumibles creados o verificados.');
+
+  // 3. CREA EL JUGADOR DE PRUEBA
+  const player = await prisma.pLAYER.upsert({
+    where: { email: 'test@example.com' },
+    update: {}, 
+    create: {
       player_name: 'Jugador Test',
       email: 'test@example.com',
       password: '123456',
-      current_garden_id: null,
-      current_garden_level: null
+      current_garden: {
+        connect: { garden_name: 'jungle' } // Jardín activo por defecto
+      }
     }
   });
+  console.log('Jugador creado o verificado:', player);
 
-  console.log('Jugador creado:', player);
-
-  // Crear 2 tareas de prueba
-  const task1 = await prisma.tASKS.create({
-    data: {
+  // 4. CREA EL PROGRESO INICIAL PARA EL JUGADOR DE PRUEBA
+  await prisma.gardenProgress.upsert({
+    where: { 
+      player_id_garden_id: {
+        player_id: player.player_id,
+        garden_id: garden1.garden_id 
+      }
+    },
+    update: {},
+    create: {
       player_id: player.player_id,
-      titulo: 'Hacer ejercicio 30 minutos',
-      tipo: 'Ejercicio',
-      completed_flag: false,
-      eliminated_flag: false
+      garden_id: garden1.garden_id,
+      level: 1
     }
   });
+  console.log('Progreso de jardín inicial creado.');
 
-  const task2 = await prisma.tASKS.create({
-    data: {
-      player_id: player.player_id,
-      titulo: 'Meditar antes de dormir',
-      tipo: 'SaludMental',
-      completed_flag: false,
-      eliminated_flag: false
-    }
+  // 5. CREA TAREAS DE PRUEBA
+  const task1Title = 'Hacer ejercicio 30 minutos';
+  const task1 = await prisma.tASKS.findFirst({
+    where: { player_id: player.player_id, titulo: task1Title }
   });
-
-  console.log('Tareas creadas:', task1, task2);
+  if (!task1) {
+    await prisma.tASKS.create({ data: { player_id: player.player_id, titulo: task1Title, tipo: 'Ejercicio' } });
+    console.log('Tarea 1 creada.');
+  }
+  
+  const task2Title = 'Meditar antes de dormir';
+  const task2 = await prisma.tASKS.findFirst({
+    where: { player_id: player.player_id, titulo: task2Title }
+  });
+  if (!task2) {
+    await prisma.tASKS.create({ data: { player_id: player.player_id, titulo: task2Title, tipo: 'SaludMental' } });
+    console.log('Tarea 2 creada.');
+  }
+  console.log('Tareas de prueba creadas o verificadas.');
 }
 
 main()

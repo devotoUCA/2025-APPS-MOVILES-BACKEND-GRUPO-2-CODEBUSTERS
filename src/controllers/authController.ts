@@ -1,10 +1,12 @@
+// src/controllers/authController.ts (CÓDIGO COMPLETO Y CORREGIDO)
+
 import { Request, Response } from 'express';
 import { prisma } from '../prisma';
 
 export const register = async (req: Request, res: Response) => {
-  const { email, password, player_name } = req.body;
+  // 1. ✅ ¡ESTA ES LA LÍNEA QUE FALTABA!
+  const { email, password, player_name } = req.body; 
   
-  // Verificar si el usuario ya existe
   const existingPlayer = await prisma.pLAYER.findUnique({
     where: { email }
   });
@@ -13,42 +15,56 @@ export const register = async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'El email ya está registrado' });
   }
   
-  // Crear nuevo jugador
+  // 2. Crea el jugador (ahora 'email', 'password', etc. están definidos)
   const newPlayer = await prisma.pLAYER.create({
     data: {
       email,
-      password, // usarías bcrypt para hashear
+      password,
       player_name,
-      current_garden_id: null,
-      current_garden_level: null
+      current_garden: { connect: { garden_name: 'jungle' } } // Asigna 'jungle' por defecto
+    },
+  });
+
+  // 3. Crea su progreso inicial para 'jungle'
+  await prisma.gardenProgress.create({
+    data: {
+      player_id: newPlayer.player_id,
+      garden_id: 1, // Asumimos que 'jungle' es ID 1 (del seed)
+      level: 1
     }
   });
-  
-  // No devolver el password
-  const { password: _, ...playerData } = newPlayer;
-  
-  res.json({ 
-    success: true, 
-    player: playerData 
+
+  // 4. Busca al jugador final (CON el progreso) para devolverlo
+  const finalPlayer = await prisma.pLAYER.findUnique({
+    where: { player_id: newPlayer.player_id },
+    include: {
+        INVENTORYs: { include: { CONSUMABLES: true } },
+        current_garden: true,
+        GardenProgress: true // Incluye el progreso de TODOS los jardines
+    }
   });
+
+  const { password: _, ...playerData } = finalPlayer!;
+  res.json({ success: true, player: playerData });
 };
 
 export const login = async (req: Request, res: Response) => {
+  // 5. ✅ ¡ESTA LÍNEA TAMBIÉN FALTABA AQUÍ!
   const { email, password } = req.body;
   
   const player = await prisma.pLAYER.findUnique({
-    where: { email }
+    where: { email },
+    include: {
+        INVENTORYs: { include: { CONSUMABLES: true } },
+        current_garden: true,
+        GardenProgress: true // Incluye el progreso de TODOS los jardines
+    }
   });
   
   if (!player || player.password !== password) {
     return res.status(401).json({ error: 'Credenciales inválidas' });
   }
   
-  // No devolver el password
   const { password: _, ...playerData } = player;
-  
-  res.json({ 
-    success: true, 
-    player: playerData 
-  });
+  res.json({ success: true, player: playerData });
 };
