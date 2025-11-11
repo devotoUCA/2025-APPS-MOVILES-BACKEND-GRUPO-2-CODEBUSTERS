@@ -1,4 +1,4 @@
-// prisma/schema.prisma (CON PROGRESO INTERMEDIO)
+
 
 generator client {
   provider = "prisma-client-js"
@@ -35,12 +35,12 @@ model GARDENS {
   GardenProgress GardenProgress[]
 }
 
-// ✅ CAMPO NUEVO: progress para guardar progreso intermedio (0, 1, 2)
+
 model GardenProgress {
   player_id Int
   garden_id Int
   level     Int @default(1)
-  progress  Int @default(0) // ✅ NUEVO: Progreso intermedio del nivel actual
+  progress  Int @default(0) 
 
   PLAYER  PLAYER  @relation(fields: [player_id], references: [player_id])
   GARDENS GARDENS @relation(fields: [garden_id], references: [garden_id])

@@ -1,9 +1,6 @@
-// src/controllers/gardenController.ts (CON RESET AL CAMBIAR JARDÍN)
-
 import { Request, Response } from 'express';
 import { prisma } from '../prisma';
 
-// Actualiza el nivel Y el progreso de un jardín
 export const updateGardenProgress = async (req: Request, res: Response) => {
   const playerId = parseInt(req.params.id);
   const { level, gardenId, progress } = req.body;
@@ -47,7 +44,6 @@ export const updateGardenProgress = async (req: Request, res: Response) => {
   }
 };
 
-// Función para guardar SOLO el progreso intermedio (sin cambiar nivel)
 export const updateGardenProgressOnly = async (req: Request, res: Response) => {
   const playerId = parseInt(req.params.id);
   const { gardenId, progress } = req.body;
@@ -149,7 +145,6 @@ export const updateInventory = async (req: Request, res: Response) => {
   }
 };
 
-// ✅ MODIFICADO: Ahora RESETEA al nivel 1 y progreso 0 cuando cambias de jardín
 export const updateGardenType = async (req: Request, res: Response) => {
   const playerId = parseInt(req.params.id);
   const { gardenName } = req.body; 
@@ -166,7 +161,6 @@ export const updateGardenType = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Jardín no encontrado' });
     }
 
-    // ✅ CAMBIO CRÍTICO: Siempre resetea a nivel 1 y progreso 0 al cambiar de jardín
     await prisma.gardenProgress.upsert({
       where: { 
         player_id_garden_id: {
@@ -175,8 +169,8 @@ export const updateGardenType = async (req: Request, res: Response) => {
         }
       },
       update: { 
-        level: 1,      // ← Resetea a nivel 1
-        progress: 0    // ← Resetea progreso a 0
+        level: 1,      
+        progress: 0    
       },
       create: {
         player_id: playerId,
