@@ -75,5 +75,7 @@ model TASKS {
   completed_flag  Boolean @default(false)
   eliminated_flag Boolean @default(false)
   completed_at    DateTime?
+  deadline        DateTime? 
+  failed_flag     Boolean   @default(false) 
   PLAYER          PLAYER  @relation(fields: [player_id], references: [player_id])
 }
