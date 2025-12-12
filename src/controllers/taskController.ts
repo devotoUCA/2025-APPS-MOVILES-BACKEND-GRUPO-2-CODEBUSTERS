@@ -55,3 +55,26 @@ export const deleteTask = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error al eliminar la tarea' });
   }
 };
+
+export const completeTask = async (req: Request, res: Response) => {
+  const taskId = parseInt(req.params.id);
+
+  if (isNaN(taskId)) {
+    return res.status(400).json({ error: 'ID de tarea inválido' });
+  }
+
+  try {
+    const updatedTask = await prisma.tASKS.update({
+      where: { task_id: taskId },
+      data: { 
+        completed_flag: true,
+        completed_at: new Date(),
+        eliminated_flag: true
+      },
+    });
+    res.status(200).json({ success: true, task: updatedTask });
+  } catch (error) {
+    console.error('Error al completar tarea:', error);
+    res.status(500).json({ error: 'Error al completar la tarea' });
+  }
+};

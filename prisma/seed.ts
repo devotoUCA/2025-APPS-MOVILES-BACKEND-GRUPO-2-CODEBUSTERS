@@ -1,72 +1,57 @@
-
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  
-  const garden1 = await prisma.gARDENS.upsert({
-    where: { garden_name: 'jungle' }, update: {}, create: { garden_name: 'jungle' }, 
-  });
-  const garden2 = await prisma.gARDENS.upsert({
-    where: { garden_name: 'peach' }, update: {}, create: { garden_name: 'peach' }, 
-  });
-  const garden3 = await prisma.gARDENS.upsert({
-    where: { garden_name: 'valley' }, update: {}, create: { garden_name: 'valley' }, 
+  // Obtener todas las tareas completadas
+  const completedTasks = await prisma.tASKS.findMany({
+    where: { completed_flag: true },
+    orderBy: { task_id: 'asc' }
   });
 
-  await prisma.cONSUMABLES.upsert({ where: { consumable_name: 'agua' }, update: {}, create: { consumable_name: 'agua' } });
-  await prisma.cONSUMABLES.upsert({ where: { consumable_name: 'polvo' }, update: {}, create: { consumable_name: 'polvo' } });
-  await prisma.cONSUMABLES.upsert({ where: { consumable_name: 'fertilizante' }, update: {}, create: { consumable_name: 'fertilizante' } });
+  console.log(`\n📊 Encontradas ${completedTasks.length} tareas completadas`);
 
-  const player = await prisma.pLAYER.upsert({
-    where: { email: 'test@example.com' },
-    update: {}, 
-    create: {
-      player_name: 'Jugador Test',
-      email: 'test@example.com',
-      password: '123456',
-      current_garden: {
-        connect: { garden_name: 'jungle' } 
-      }
-    }
-  });
-
-  await prisma.gardenProgress.upsert({
-    where: { 
-      player_id_garden_id: {
-        player_id: player.player_id,
-        garden_id: garden1.garden_id 
-      }
-    },
-    update: {},
-    create: {
-      player_id: player.player_id,
-      garden_id: garden1.garden_id,
-      level: 1
-    }
-  });
-
-  const task1Title = 'Hacer ejercicio 30 minutos';
-  const task1 = await prisma.tASKS.findFirst({
-    where: { player_id: player.player_id, titulo: task1Title }
-  });
-  if (!task1) {
-    await prisma.tASKS.create({ data: { player_id: player.player_id, titulo: task1Title, tipo: 'Ejercicio' } });
+  if (completedTasks.length === 0) {
+    console.log('❌ No hay tareas completadas para modificar');
+    console.log('💡 Completa algunas tareas primero y luego vuelve a ejecutar este script\n');
+    return;
   }
+
+  // Distribuir las tareas en los últimos 7 días
+  const today = new Date();
+  const daysToDistribute = Math.min(7, completedTasks.length);
   
-  const task2Title = 'Meditar antes de dormir';
-  const task2 = await prisma.tASKS.findFirst({
-    where: { player_id: player.player_id, titulo: task2Title }
-  });
-  if (!task2) {
-    await prisma.tASKS.create({ data: { player_id: player.player_id, titulo: task2Title, tipo: 'SaludMental' } });
+  console.log(`\n🔄 Distribuyendo tareas en los últimos ${daysToDistribute} días...\n`);
+  
+  for (let i = 0; i < completedTasks.length; i++) {
+    const task = completedTasks[i];
+    
+    // Distribuir tareas en los últimos 7 días
+    const daysAgo = i % daysToDistribute;
+    const completedDate = new Date(today);
+    completedDate.setDate(today.getDate() - daysAgo);
+    
+    // Variar las horas para que se vea más natural
+    completedDate.setHours(8 + (i % 12));
+    completedDate.setMinutes((i * 15) % 60);
+    
+    await prisma.tASKS.update({
+      where: { task_id: task.task_id },
+      data: { completed_at: completedDate }
+    });
+    
+    const dateStr = completedDate.toLocaleDateString('es-ES');
+    const timeStr = completedDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    console.log(`✅ Tarea ${task.task_id}: "${task.titulo}" → ${dateStr} ${timeStr}`);
   }
+
+  console.log('\n🎉 ¡Fechas actualizadas correctamente!');
+  console.log('🔄 Refresca la app para ver el gráfico con datos de varios días\n');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Error:', e);
     process.exit(1);
   })
   .finally(async () => {
