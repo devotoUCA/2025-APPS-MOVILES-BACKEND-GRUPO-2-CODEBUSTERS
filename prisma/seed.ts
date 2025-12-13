@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Obtener todas las tareas completadas
+  
   const completedTasks = await prisma.tASKS.findMany({
     where: { completed_flag: true },
     orderBy: { task_id: 'asc' }
@@ -17,7 +17,7 @@ async function main() {
     return;
   }
 
-  // Distribuir las tareas en los últimos 7 días
+  
   const today = new Date();
   const daysToDistribute = Math.min(7, completedTasks.length);
   
@@ -26,12 +26,12 @@ async function main() {
   for (let i = 0; i < completedTasks.length; i++) {
     const task = completedTasks[i];
     
-    // Distribuir tareas en los últimos 7 días
+    
     const daysAgo = i % daysToDistribute;
     const completedDate = new Date(today);
     completedDate.setDate(today.getDate() - daysAgo);
     
-    // Variar las horas para que se vea más natural
+    
     completedDate.setHours(8 + (i % 12));
     completedDate.setMinutes((i * 15) % 60);
     

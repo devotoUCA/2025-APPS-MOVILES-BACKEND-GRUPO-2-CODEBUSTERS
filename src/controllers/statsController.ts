@@ -26,7 +26,7 @@ export const getTaskHistory = async (req: Request, res: Response) => {
       }
     });
 
-    // Agrupar por fecha
+    
     const tasksByDate: { [key: string]: number } = {};
     
     completedTasks.forEach(task => {

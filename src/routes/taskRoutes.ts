@@ -8,6 +8,6 @@ router.post('/tasks', createTask);
 router.delete('/tasks/:id', deleteTask);
 router.put('/tasks/:id/complete', completeTask);
 router.get('/tasks/check-overdue/:playerId', checkOverdueTasks);
-router.get('/tasks/:taskId/is-overdue', checkSingleTaskOverdue); // ← AGREGAR ESTA LÍNEA
+router.get('/tasks/:taskId/is-overdue', checkSingleTaskOverdue); 
 
 export default router;

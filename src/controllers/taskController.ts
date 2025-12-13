@@ -91,7 +91,7 @@ export const checkOverdueTasks = async (req: Request, res: Response) => {
   try {
     const now = new Date();
     
-    // Encontrar tareas vencidas
+    
     const overdueTasks = await prisma.tASKS.findMany({
       where: {
         player_id: playerId,
@@ -106,7 +106,7 @@ export const checkOverdueTasks = async (req: Request, res: Response) => {
       return res.json({ overdueTasks: [], penaltyApplied: false });
     }
 
-    // Marcar tareas como fallidas
+    
     await prisma.tASKS.updateMany({
       where: {
         task_id: { in: overdueTasks.map(t => t.task_id) }
@@ -117,7 +117,7 @@ export const checkOverdueTasks = async (req: Request, res: Response) => {
       }
     });
 
-    // Obtener el jardín actual del jugador
+    
     const player = await prisma.pLAYER.findUnique({
       where: { player_id: playerId },
       include: { 
@@ -136,7 +136,7 @@ export const checkOverdueTasks = async (req: Request, res: Response) => {
       });
     }
 
-    // Obtener progreso actual
+    
     const currentProgress = player.GardenProgress.find(
       gp => gp.garden_id === player.current_garden_id
     );
@@ -149,21 +149,21 @@ export const checkOverdueTasks = async (req: Request, res: Response) => {
       });
     }
 
-    // PENALIZACIÓN SIMPLIFICADA: Bajar 1 nivel por cada tarea vencida
+    
     const levelsToReduce = overdueTasks.length;
     let newLevel = Math.max(1, currentProgress.level - levelsToReduce);
     let newProgress = currentProgress.progress;
     
-    // Si ya está en nivel 1, resetear progreso a 0
+    
     if (currentProgress.level === 1) {
       newLevel = 1;
       newProgress = 0;
     } else if (newLevel < currentProgress.level) {
-      // Si bajó de nivel, resetear progreso a 0
+      
       newProgress = 0;
     }
 
-    // Aplicar penalización
+    
     await prisma.gardenProgress.update({
       where: {
         player_id_garden_id: {
@@ -177,7 +177,7 @@ export const checkOverdueTasks = async (req: Request, res: Response) => {
       }
     });
 
-    // Obtener jugador actualizado
+    
     const updatedPlayer = await prisma.pLAYER.findUnique({
       where: { player_id: playerId },
       include: {
