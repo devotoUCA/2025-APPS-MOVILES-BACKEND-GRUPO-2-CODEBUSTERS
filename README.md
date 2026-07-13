@@ -27,6 +27,12 @@ cd 2025-APPS-MOVILES-BACKEND-GRUPO-2-CODEBUSTERS
 npm install
 ```
 
+3.5. Variables de entorno 
+Antes de inicializar la base de datos, es obligatorio crear un archivo de configuración.
+Creá un archivo llamado .env en la raíz del proyecto y agregá la siguiente línea:
+
+DATABASE_URL="file:./dev.db"
+
 ### 4. Configurar la base de datos
 
 Ejecutá este comando para crear la base de datos y las tablas:
